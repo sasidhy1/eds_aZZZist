@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(-1)
 
 # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out1 = cv2.VideoWriter('/home/sasidhy1/Videos/output1.avi',fourcc, 30, (640,480), True)
-out2 = cv2.VideoWriter('/home/sasidhy1/Videos/output2.avi',fourcc, 30, (640,480), False)
+out1 = cv2.VideoWriter('/home/sasidhy1/Videos/canny1.avi',fourcc, 30, (640,480), True)
+out2 = cv2.VideoWriter('/home/sasidhy1/Videos/canny2.avi',fourcc, 30, (640,480), False)
 
 while(cap.isOpened()):
     # Capture frame-by-frame
