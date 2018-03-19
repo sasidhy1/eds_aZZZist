@@ -33,3 +33,13 @@ ap.add_argument("-p", "--shape-predictor", required=True,
 ap.add_argument("-v", "--video", type=str, default="",
 	help="path to input video file")
 args = vars(ap.parse_args())
+
+# define two constants, one for the eye aspect ratio to indicate
+# blink and then a second constant for the number of consecutive
+# frames the eye must be below the threshold
+EYE_AR_THRESH = 0.3
+EYE_AR_CONSEC_FRAMES = 3
+ 
+# initialize the frame counters and the total number of blinks
+COUNTER = 0
+TOTAL = 0
