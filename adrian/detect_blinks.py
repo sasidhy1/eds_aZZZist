@@ -54,3 +54,12 @@ predictor = dlib.shape_predictor(args["shape_predictor"])
 # right eye, respectively
 (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
 (rStart, rEnd) = face_utils.FACIAL_LANDMARKS_IDXS["right_eye"]
+
+# start the video stream thread
+print("[INFO] starting video stream thread...")
+vs = FileVideoStream(args["video"]).start()
+fileStream = True
+vs = VideoStream(src=0).start()
+# vs = VideoStream(usePiCamera=True).start()
+fileStream = False
+time.sleep(1.0)
