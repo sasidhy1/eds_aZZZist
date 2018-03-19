@@ -25,3 +25,11 @@ def eye_aspect_ratio(eye):
  
 	# return the eye aspect ratio
 	return ear
+
+# construct the argument parse and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-p", "--shape-predictor", required=True,
+	help="path to facial landmark predictor")
+ap.add_argument("-v", "--video", type=str, default="",
+	help="path to input video file")
+args = vars(ap.parse_args())
