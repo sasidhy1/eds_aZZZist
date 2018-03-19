@@ -105,3 +105,19 @@ while True:
 		rightEyeHull = cv2.convexHull(rightEye)
 		cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
 		cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
+
+		# check to see if the eye aspect ratio is below the blink
+		# threshold, and if so, increment the blink frame counter
+		if ear < EYE_AR_THRESH:
+			COUNTER += 1
+ 
+		# otherwise, the eye aspect ratio is not below the blink
+		# threshold
+		else:
+			# if the eyes were closed for a sufficient number of
+			# then increment the total number of blinks
+			if COUNTER >= EYE_AR_CONSEC_FRAMES:
+				TOTAL += 1
+ 
+			# reset the eye frame counter
+			COUNTER = 0
