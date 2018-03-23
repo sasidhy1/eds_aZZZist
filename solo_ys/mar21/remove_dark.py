@@ -7,7 +7,7 @@ import datetime
 import imutils
 import time
 
-cap = cv2.VideoCapture(-1)
+cap = cv2.VideoCapture('/home/sasidhy1/Desktop/eds_azzzist/SAMPLES/dark2-2.mp4')
 blur_radius = (20,20)
 # threshold = 50
 
@@ -23,10 +23,15 @@ while(True):
     blur = cv2.blur(frame, blur_radius)
     hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
 
-    # output = 
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    (thresh, binn) = cv2.threshold(gray, 50, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+    ellipse = cv2.fitEllipse(cnt)
+    output = cv2.ellipse(img,ellipse,(0,255,0),2)
 
     # Display the resulting frame
-    cv2.imshow("images", np.hstack([frame, blur, hsv]))
+    cv2.imshow("images", np.hstack([frame, blur]))
+    cv2.imshow("bw", np.hstack([binn, output]))
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
