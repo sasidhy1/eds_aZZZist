@@ -15,6 +15,11 @@ cap = cv2.VideoCapture('/home/sasidhy1/Desktop/eds_azzzist/SAMPLES/reading.mp4')
 start_time = time.time()
 
 while(True):
+    elapsed_time = time.time() - start_time
+    elap = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+
+    onset = time.time()
+
     ret, frame = cap.read()
     frame = cv2.resize(frame,(640,360))
     
@@ -29,13 +34,12 @@ while(True):
     edges = cv2.Canny(blur,200,220)
 
     status = "eyes closed"
-    elapsed_time = time.time() - start_time
-    curr = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
 
     contours1 =  cv2.findContours(edges,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2]
     for c in contours1:
         if cv2.contourArea(c) > 9:
             status = "eyes OPEN"
+            death = time.time()
             M = cv2.moments(c)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
@@ -50,24 +54,41 @@ while(True):
     new = roi[cY:360-70, 0:640-360]
 
     cv2.putText(img = frame,
-            text = 'elapsed time: {}'.format(curr),
-            org = (10,20),
-            fontFace = cv2.FONT_HERSHEY_DUPLEX,
-            fontScale = 0.5,
-            color = (0, 255, 0))
+        text = 'elapsed time: {}'.format(elap),
+        org = (10,20),
+        fontFace = cv2.FONT_HERSHEY_DUPLEX,
+        fontScale = 0.5,
+        color = (0, 255, 0))
 
     cv2.putText(img = frame,
-            text = 'status: {}'.format(status),
-            org = (10,40),
+        text = 'status: {}'.format(status),
+        org = (10,40),
+        fontFace = cv2.FONT_HERSHEY_DUPLEX,
+        fontScale = 0.5,
+        color = (0, 255, 0))
+
+    wake = onset - death
+
+    if wake > 1:
+        cv2.putText(img = frame,
+            text = 'subject is ASLEEP',
+            org = (10,60),
+            fontFace = cv2.FONT_HERSHEY_DUPLEX,
+            fontScale = 0.5,
+            color = (0, 0, 255))
+    else:
+        cv2.putText(img = frame,
+            text = 'subject is awake',
+            org = (10,60),
             fontFace = cv2.FONT_HERSHEY_DUPLEX,
             fontScale = 0.5,
             color = (0, 255, 0))
 
     cv2.imshow("disp1", frame)
-    cv2.imshow("disp", gray)
-    cv2.imshow("disp2", roi)
-    cv2.imshow("disp3", new)
-    cv2.imshow("images", np.hstack([edges, gray]))
+    # cv2.imshow("disp", gray)
+    # cv2.imshow("disp2", roi)
+    # cv2.imshow("disp3", new)
+    # cv2.imshow("images", np.hstack([edges, gray]))
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

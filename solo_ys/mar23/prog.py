@@ -3,6 +3,9 @@ import time
 from random import *
 import sys
 
+out1 = open('output1.txt', 'w')
+out2 = open('output2.txt', 'w')
+
 start_time = time.time()
 t_end1 = start_time + 60 * 5
 t_end2 = t_end1 + 60 * 15
@@ -13,24 +16,17 @@ while time.time() <= t_end1:
 
 	duration = 0.5  # second
 	freq = 450  # Hz
-	print("beep 1")
 	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 	time.sleep(0.5)
-	print("beep 2")
 	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 	time.sleep(0.5)
-	print("beep 3")
 	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 	time.sleep(0.5)
-	print("---------------------------------------------")
-	print("waiting..........")
 
-	print("random interval: {}").format(rand1)
+	out1 = open('output1.txt', 'a')
+	out1.write(str(rand1))
+	out1.write("\n")
 	time.sleep(rand1)
-
-print("----------------------------------------------------------")
-print("running for 5 minutes, random between 1 and 2 minutes")
-t_end = time.time() + 60 * 7
 
 while (time.time() <= t_end2) and (time.time() > t_end1):
 
@@ -38,20 +34,14 @@ while (time.time() <= t_end2) and (time.time() > t_end1):
 
 	duration = 0.5  # second
 	freq = 450  # Hz
-	print("beep 1")
 	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 	time.sleep(0.5)
-	print("beep 2")
 	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 	time.sleep(0.5)
-	print("beep 3")
 	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 	time.sleep(0.5)
-	print("---------------------------------------------")
-	print("waiting..........")
 
-	print("random interval: {}").format(rand2)
+	out2 = open('output2.txt', 'a')
+	out2.write(str(rand2))
+	out2.write("\n")
 	time.sleep(rand2)
-
-print("----------------------------------------------------------")
-print(time.time())
