@@ -1,23 +1,30 @@
 import os
 import time
 from random import *
-import sys
-import pygame
+
+duration = 0.5  # second
+freq = 450  # Hz
+
+def beep_protocol():
+	print("beep 1")
+	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
+	time.sleep(0.5)
+	print("beep 2")
+	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
+	time.sleep(0.5)
+	print("beep 3")
+	os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
+	time.sleep(0.5)
 
 start_time = time.time()
 t_end1 = start_time + 60 * 5
 t_end2 = t_end1 + 60 * 15
 
-pygame.mixer.init()
-pygame.mixer.music.load("/home/sasidhy1/Desktop/eds_azzzist/SAMPLES/kat_beep.wav")
-# pygame.mixer.music.load("/home/pi/Desktop/eds_azzzist/SAMPLES/kat_beep.wav")
-pygame.mixer.music.play()
-
 while time.time() <= t_end1:
 
 	rand1 = uniform(5, 10)
 
-	pygame.mixer.music.play()
+	beep_protocol()
 	print("---------------------------------------------")
 	print("waiting..........")
 
@@ -26,13 +33,12 @@ while time.time() <= t_end1:
 
 print("----------------------------------------------------------")
 print("running for 5 minutes, random between 1 and 2 minutes")
-t_end = time.time() + 60 * 7
 
 while (time.time() <= t_end2) and (time.time() > t_end1):
 
 	rand2 = uniform(60, 120)
 
-	pygame.mixer.music.play()
+	beep_protocol()
 	print("---------------------------------------------")
 	print("waiting..........")
 
