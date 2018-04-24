@@ -9,6 +9,8 @@ import time
 cap = cv2.VideoCapture('/home/sasidhy1/Desktop/eds_azzzist/SAMPLES/study.mp4')
 
 start_time = time.time()
+temp = 0
+counter = 0
 
 while(True):
     elapsed_time = time.time() - start_time
@@ -57,6 +59,13 @@ while(True):
         color = (0, 255, 0))
 
     cv2.putText(img = frame,
+        text = 'user has fallen asleep {} times'.format(counter),
+        org = (10,80),
+        fontFace = cv2.FONT_HERSHEY_DUPLEX,
+        fontScale = 0.5,
+        color = (0, 255, 0))
+
+    cv2.putText(img = frame,
         text = 'status: {}'.format(status),
         org = (10,40),
         fontFace = cv2.FONT_HERSHEY_DUPLEX,
@@ -72,6 +81,8 @@ while(True):
             fontFace = cv2.FONT_HERSHEY_DUPLEX,
             fontScale = 0.5,
             color = (0, 0, 255))
+        temp += 1
+
     else:
         cv2.putText(img = frame,
             text = 'subject is awake',
@@ -79,6 +90,9 @@ while(True):
             fontFace = cv2.FONT_HERSHEY_DUPLEX,
             fontScale = 0.5,
             color = (0, 255, 0))
+        if temp != 0:
+            counter += 1
+        temp = 0
 
     cv2.imshow("disp1", frame)
     # cv2.imshow("disp", gray)
