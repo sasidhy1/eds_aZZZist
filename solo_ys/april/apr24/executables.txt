@@ -1,0 +1,86 @@
+#!/usr/bin/env python
+
+
+import RPi.GPIO as GPIO
+import subprocess
+
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.wait_for_edge(3, GPIO.FALLING)
+
+subprocess.call(['shutdown', '-h', 'now'], shell=False)
+
+
+
+sudo mv listen-for-shutdown.py /usr/local/bin/
+sudo chmod +x /usr/local/bin/listen-for-shutdown.py
+
+
+
+#!/usr/bin/env python
+
+
+import RPi.GPIO as GPIO
+import subprocess
+
+GPIO.setwarnings(False) # ignore warning
+GPIO.setmode(GPIO.BCM) # physical pin numbering
+GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_UP) # pin 15 initial value as pulled low (off)
+GPIO.wait_for_edge(15, GPIO.FALLING)
+
+print('user requested beep protocol')
+subprocess.call(['python', '/home/pi/Desktop/eds_azzzist/solo_ys/april/apr9/pi_beep.py'], shell=False)
+
+sudo mv listen-for-beep-request.py /usr/local/bin/
+sudo chmod +x /usr/local/bin/listen-for-beep-request.py
+
+
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides:          listen-for-shutdown.py
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+# If you want a command to always run, put it here
+# (can put in init.d folder as well)
+# echo "Starting verification.py"
+# python /home/pi/Desktop/eds_azzzist/solo_ys/march/mar26/verification.py
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    python /home/pi/Desktop/eds_azzzist/solo_ys/april/apr9/ON_CHIME.py
+    echo "Starting listen-for-shutdown.py"
+    /usr/local/bin/listen-for-shutdown.py &
+    echo "Starting listen-for-beep-request.py"
+    /usr/local/bin/listen-for-beep-request.py &
+    ;;
+  stop)
+    python /home/pi/Desktop/eds_azzzist/solo_ys/april/apr9/OFF_CHIME.py
+    echo "Stopping listen-for-beep-request.py"
+    pkill -f /usr/local/bin/listen-for-beep-request.py
+    echo "Stopping listen-for-shutdown.py"
+    pkill -f /usr/local/bin/listen-for-shutdown.py
+    ;;
+  *)
+    echo "Usage: /etc/init.d/listen-for-shutdown.sh {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
+
+
+
+
+sudo mv listen-for-shutdown.sh /etc/init.d/
+sudo chmod +x /etc/init.d/listen-for-shutdown.sh
+
+
+sudo update-rc.d listen-for-shutdown.sh defaults
+sudo /etc/init.d/listen-for-shutdown.sh start
