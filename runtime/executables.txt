@@ -14,19 +14,23 @@ subprocess.call(['shutdown', '-h', 'now'], shell=False)
 sudo mv listen-for-shutdown.py /usr/local/bin/
 sudo chmod +x /usr/local/bin/listen-for-shutdown.py
 ----------------------------------------------------------
+sudo nano listen-for-beep-request.py
+----------------------------------------------------------
 #!/usr/bin/env python
-
 
 import RPi.GPIO as GPIO
 import subprocess
 
 GPIO.setwarnings(False) # ignore warning
-GPIO.setmode(GPIO.BCM) # physical pin numbering
-GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_UP) # pin 15 initial value as pulled low (off)
-GPIO.wait_for_edge(15, GPIO.FALLING)
+GPIO.setmode(GPIO.BCM) # GPIO pin numbering
+GPIO.setup(2, GPIO.IN, pull_up_down=GPIO.PUD_UP) # pin 2 initial value as pulled low (off)
+GPIO.wait_for_edge(2, GPIO.FALLING)
 
-print('user requested beep protocol')
-subprocess.call(['python', '/home/pi/Desktop/eds_azzzist/solo_ys/april/apr9/pi_beep.py'], shell=False)
+# if alarm cond is TRUE
+	print('user requested beep protocol')
+	p = subprocess.Popen(['python', '/home/pi/Desktop/eds_azzzist/solo_ys/april/apr9/pi_beep.py'], shell=False)
+# else alarm cond is FALSE
+	# terminate alarm process
 ----------------------------------------------------------
 sudo mv listen-for-beep-request.py /usr/local/bin/
 sudo chmod +x /usr/local/bin/listen-for-beep-request.py
@@ -49,18 +53,23 @@ sudo chmod +x /usr/local/bin/listen-for-beep-request.py
 # Carry out specific functions when asked to by the system
 case "$1" in
   start)
-    python /home/pi/Desktop/eds_azzzist/solo_ys/april/apr9/ON_CHIME.py
+    python ON_CHIME.py
     echo "Starting listen-for-shutdown.py"
     /usr/local/bin/listen-for-shutdown.py &
+    echo "Starting driver.py"
+    /usr/local/bin/driver.py
     echo "Starting listen-for-beep-request.py"
-    /usr/local/bin/listen-for-beep-request.py &
+    /usr/local/bin/listen-for-beep-request.py
     ;;
   stop)
-    python /home/pi/Desktop/eds_azzzist/solo_ys/april/apr9/OFF_CHIME.py
+    # end alarm first
     echo "Stopping listen-for-beep-request.py"
     pkill -f /usr/local/bin/listen-for-beep-request.py
+    echo "Stopping driver.py"
+    pkill -f /usr/local/bin/driver.py
     echo "Stopping listen-for-shutdown.py"
     pkill -f /usr/local/bin/listen-for-shutdown.py
+    python OFF_CHIME.py
     ;;
   *)
     echo "Usage: /etc/init.d/listen-for-shutdown.sh {start|stop}"
