@@ -97,7 +97,6 @@ while(True):
             fontScale = 0.5,
             color = (0, 0, 255))
         temp += 1
-        p = subprocess.Popen(["python", "verif_sound.py"], shell=False)
 
     else:
         cv2.putText(img = frame,
@@ -108,6 +107,7 @@ while(True):
             color = (0, 255, 0))
         if temp != 0:
             counter += 1
+            p = subprocess.Popen(["python", "verif_sound.py"], shell=False)
         temp = 0
 
     cv2.imshow("disp1", frame)
