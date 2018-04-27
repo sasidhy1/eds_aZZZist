@@ -1,58 +1,50 @@
 # import the necessary packages
-from pivideostream import PiVideoStream
+from video_class import PiVideoStream
 import datetime
 import imutils
 import time
 import cv2
 import numpy as np
 
-death = 0.0
-temp = 0
-counter = 0
+# initialize variables
+microsleep = False          # boolean to store subject state, default
+counter = 0                 # variable to count instances of microsleep
 
-cond = False
-
-# initialize the video stream and allow the cammera sensor to warmup
-vs = PiVideoStream(resolution=(320, 240),framerate=32)
+# initialize the video stream specs, allow time for camera sensor to warmup
+vs = PiVideoStream(resolution=(320, 240),framerate=32,contrast=100)
 vs.start()
 time.sleep(2.0)
 
+# initialize start time after warmup
 start_time = time.time()
 
 while(True):
-    elapsed_time = time.time() - start_time
-    elap = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    frame = vs.read()                                               # start parsing through frames
+    frame = imutils.resize(frame, width=400)                        # resize each individual frames
 
-    onset = time.time()
-
-    # grab the frame from the threaded video stream and resize it
-    # to have a maximum width of 400 pixels
-    frame = vs.read()
-    frame = imutils.resize(frame, width=400)
- 
-    # draw the timestamp on the frame
-    timestamp = datetime.datetime.now()
-    # ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
-    # cv2.putText(frame, ts, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
-		# 0.35, (0, 0, 255), 1)
+    onset = time.time()                                             # declare time of EC onset
     
-    roi = frame[100:300, 100:250]
+    roi = frame[100:300, 100:250]                                   # crop to region of interest
+    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)                    # convert BGR frame to grayscale
+    ret, thresh_img = cv2.threshold(gray,200,255,cv2.THRESH_BINARY) # create binary (BW) mask of grayscale image
 
-    gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-    ret, thresh_img = cv2.threshold(gray,200,255,cv2.THRESH_BINARY)
+    clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(4,4))      # perform adaptive histogram equalization
+    hist = clahe.apply(gray)                                        # apply histogram to grayscale frame
+    blur = cv2.bilateralFilter(hist,9,75,75)                        # noise removal, keep edges intact
+    edges = cv2.Canny(blur,150,220)                                 # apply canny edge detection algorithm
 
-    clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(4,4))
-    hist = clahe.apply(gray)
-    blur = cv2.bilateralFilter(hist,9,75,75)
-    edges = cv2.Canny(blur,150,220)
+    status = "eyes closed"                                          # declare current status, default is closed
 
-    status = "eyes closed"
-
-    contours1 =  cv2.findContours(edges,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2]
-    for c in contours1:
+    # detect contours within canny edge result, only display contours above predefined area threshold
+    # calculate centerpoints of each contour moment, display with black circle on grayscale frame
+    # this achieves accurate segmentation the eyelid and eyelashes, and extracts x,y-position data
+    contours =  cv2.findContours(edges,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2]
+    for c in contours:
         if cv2.contourArea(c) > 13:
-            status = "eyes OPEN"
-            death = time.time()
+
+            end = time.time()       # declare time of EC end
+            status = "eyes OPEN"    # declare current status, eyes open
+
             M = cv2.moments(c)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
@@ -60,61 +52,86 @@ while(True):
             cv2.drawContours(gray, [c], -1, 0, 2)
             cv2.circle(gray, (cX, cY), 7, 0, -1)
 
-            contours2 =  cv2.findContours(thresh_img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2]
-            for c in contours2:
-                cv2.drawContours(roi, [c], -1, (255,255,255), -1)
+            # contours calculated from binary mask when eyelid folds and eyelashes are detected
+            # each contiguous contour filled with white for visualizing sclera segmentation
+            sclera =  cv2.findContours(thresh_img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2]
+            for s in sclera:
+                cv2.drawContours(roi, [s], -1, (255,255,255), -1)
 
-    new = roi[0:360-70, 0:640-360]
+    # visualize dynamic cropping based on calculated canny edge contours
+    new = roi[cY:360-70, 0:640-360]
 
+    # calculate elapsed time for display
+    # convert time format for readability
+    elapsed_time = time.time() - start_time
+    elap = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+
+    # display elapsed time on frame
     cv2.putText(img = frame,
         text = 'elapsed time: {}'.format(elap),
         org = (10,20),
         fontFace = cv2.FONT_HERSHEY_DUPLEX,
-        fontScale = 0.5,
+        fontScale = 0.45,
+        color = (0, 255, 0))
+
+    # draw the timestamp on the frame
+    timestamp = datetime.datetime.now()
+    ts = timestamp.s trftime("%A %d %B %Y %I:%M:%S%p")
+    cv2.putText(img = frame,
+        text = '{}'.format(ts),
+        org = (10, frame.shape[0] - 10),
+        fontFace = cv2.FONT_HERSHEY_SIMPLEX,
+        fontScale = 0.45,
+        color = (0, 0, 255) )
+
+    # display eye status on frame
+    cv2.putText(img = frame,
+        text = 'status: {}'.format(status),
+        org = (10,40),
+        fontFace = cv2.FONT_HERSHEY_DUPLEX,
+        fontScale = 0.45,
         color = (0, 255, 0))
 
     cv2.putText(img = frame,
         text = 'user has fallen asleep {} times'.format(counter),
         org = (10,80),
         fontFace = cv2.FONT_HERSHEY_DUPLEX,
-        fontScale = 0.5,
+        fontScale = 0.45,
         color = (0, 255, 0))
 
-    cv2.putText(img = frame,
-        text = 'status: {}'.format(status),
-        org = (10,40),
-        fontFace = cv2.FONT_HERSHEY_DUPLEX,
-        fontScale = 0.5,
-        color = (0, 255, 0))
+    # calculate duration of EC
+    wake = onset - end
 
-    wake = onset - death
-
+    # display subject status on frame
+    # microsleep detected, EC > 1000ms
     if wake > 1:
         cv2.putText(img = frame,
             text = 'subject is ASLEEP',
             org = (10,60),
             fontFace = cv2.FONT_HERSHEY_DUPLEX,
-            fontScale = 0.5,
+            fontScale = 0.45,
             color = (0, 0, 255))
-        temp += 1
+        microsleep = True
 
+    # display subject status on frame
+    # NO microsleep detected, EC <= 1000ms
     else:
         cv2.putText(img = frame,
             text = 'subject is awake',
             org = (10,60),                                                  
             fontFace = cv2.FONT_HERSHEY_DUPLEX,
-            fontScale = 0.5,
+            fontScale = 0.45,
             color = (0, 255, 0))
-        if temp != 0:
+        if microsleep:
             counter += 1
             p = subprocess.Popen(["python", "verif_sound.py"], shell=False)
-        temp = 0
-
+        microsleep = False
+        
     cv2.imshow("disp1", frame)
     # cv2.imshow("disp", gray)
     # cv2.imshow("disp2", roi)
     # cv2.imshow("disp3", new)
-    cv2.imshow("images", np.hstack([edges, gray]))
+    # cv2.imshow("images", np.hstack([edges, gray]))
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
