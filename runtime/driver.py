@@ -1,7 +1,6 @@
 # import the necessary packages
-from imutils.video import VideoStream
+from pivideostream import PiVideoStream
 import datetime
-import argparse
 import imutils
 import time
 import cv2
@@ -13,14 +12,9 @@ counter = 0
 
 cond = False
 
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-p", "--picamera", type=int, default=-1,
-	help="whether or not the Raspberry Pi camera should be used")
-args = vars(ap.parse_args())
- 
 # initialize the video stream and allow the cammera sensor to warmup
-vs = VideoStream(usePiCamera=args["picamera"] > 0).start()
+vs = PiVideoStream(resolution=(320, 240),framerate=32)
+vs.start()
 time.sleep(2.0)
 
 start_time = time.time()
@@ -103,7 +97,6 @@ while(True):
             fontScale = 0.5,
             color = (0, 0, 255))
         temp += 1
-        p = subprocess.Popen(["python", "verif_sound.py"], shell=False)
 
     else:
         cv2.putText(img = frame,
@@ -114,6 +107,7 @@ while(True):
             color = (0, 255, 0))
         if temp != 0:
             counter += 1
+            p = subprocess.Popen(["python", "verif_sound.py"], shell=False)
         temp = 0
 
     cv2.imshow("disp1", frame)
